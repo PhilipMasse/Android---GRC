@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Interdit tout trafic non chiffré (HTTP) vers n'importe quel domaine :
+    l'application ne doit jamais communiquer avec l'API GRC (ni aucun autre
+    service) sans TLS, y compris pendant le développement.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

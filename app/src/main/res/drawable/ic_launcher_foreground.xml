@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Repère de localisation stylisé, centré dans la zone de sécurité de l'icône adaptative. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,26 C41.85,26 32,35.85 32,48 C32,65 54,86 54,86 C54,86 76,65 76,48 C76,35.85 66.15,26 54,26 Z" />
+    <path
+        android:fillColor="#2D6AB0"
+        android:pathData="M54,38 m-11,0 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0" />
+</vector>

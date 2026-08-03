@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GRC Citoyenne</string>
+
+    <!-- Connexion -->
+    <string name="login_title">Se connecter</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Mot de passe</string>
+    <string name="login_submit">Se connecter</string>
+    <string name="login_forgot_password">Mot de passe oublié ?</string>
+    <string name="login_no_account">Pas encore de compte ? Créer un compte</string>
+    <string name="login_error_generic">Identifiants invalides.</string>
+
+    <!-- Double authentification -->
+    <string name="twofa_title">Vérification supplémentaire</string>
+    <string name="twofa_code_label">Code de vérification</string>
+    <string name="twofa_hint_email">Un code vous a été envoyé par email.</string>
+    <string name="twofa_hint_totp">Saisissez le code affiché par votre application d\'authentification.</string>
+    <string name="twofa_submit">Valider</string>
+
+    <!-- Inscription -->
+    <string name="register_title">Créer un compte</string>
+    <string name="register_firstname">Prénom</string>
+    <string name="register_lastname">Nom</string>
+    <string name="register_email">Email</string>
+    <string name="register_password">Mot de passe (8 caractères minimum)</string>
+    <string name="register_captcha_label">Vérification anti-robot</string>
+    <string name="register_submit">Créer mon compte</string>
+
+    <!-- Mot de passe oublié -->
+    <string name="forgot_password_title">Mot de passe oublié</string>
+    <string name="forgot_password_hint">Indiquez votre email : si un compte existe, un lien de réinitialisation vous sera envoyé.</string>
+    <string name="forgot_password_submit">Envoyer le lien</string>
+
+    <!-- Général -->
+    <string name="action_retry">Réessayer</string>
+    <string name="loading">Chargement…</string>
+</resources>
