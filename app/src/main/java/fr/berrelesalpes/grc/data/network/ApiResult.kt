@@ -49,10 +49,11 @@ fun <T> Response<T>.toApiResult(moshi: Moshi): ApiResult<T> {
 }
 
 /**
- * Enveloppe les exceptions réseau (pas de connexion, timeout...) qui ne
- * passent jamais par Retrofit's Response — donc pas gérées par
- * [toApiResult] — dans le même type de résultat.
+ * Enveloppe les exceptions non gérées par [toApiResult] (pas de connexion,
+ * timeout, ou réponse serveur dans un format inattendu qui fait échouer
+ * l'analyse JSON) dans le même type de résultat, pour ne jamais laisser une
+ * exception non rattrapée faire planter l'application.
  */
 fun <T> networkErrorResult(e: Exception): ApiResult<T> = ApiResult.Error(
-    message = "Impossible de contacter le serveur. Vérifiez votre connexion internet."
+    message = "Impossible de contacter le serveur ou réponse inattendue. Vérifiez votre connexion internet et réessayez."
 )

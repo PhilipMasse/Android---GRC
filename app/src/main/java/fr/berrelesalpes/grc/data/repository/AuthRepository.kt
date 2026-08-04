@@ -55,7 +55,7 @@ class AuthRepository(
                 }
                 is ApiResult.Error -> result
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -71,7 +71,7 @@ class AuthRepository(
                 }
                 is ApiResult.Error -> result
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -79,7 +79,7 @@ class AuthRepository(
     suspend fun getCaptcha(): ApiResult<CaptchaChallenge> = withContext(Dispatchers.IO) {
         try {
             api.getCaptcha().toApiResult(moshi)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -95,7 +95,7 @@ class AuthRepository(
                 }
                 is ApiResult.Error -> result
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -106,7 +106,7 @@ class AuthRepository(
                 is ApiResult.Success -> ApiResult.Success(result.data.message)
                 is ApiResult.Error -> result
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -117,7 +117,7 @@ class AuthRepository(
                 is ApiResult.Success -> ApiResult.Success(result.data.message)
                 is ApiResult.Error -> result
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -125,7 +125,7 @@ class AuthRepository(
     suspend fun getCurrentUser(): ApiResult<Citoyen> = withContext(Dispatchers.IO) {
         try {
             api.getMe().toApiResult(moshi)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }

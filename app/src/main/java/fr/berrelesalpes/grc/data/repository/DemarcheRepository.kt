@@ -29,7 +29,7 @@ class DemarcheRepository(private val api: GrcApiService) {
     suspend fun getTypes(): ApiResult<List<DemarcheType>> = withContext(Dispatchers.IO) {
         try {
             api.getDemarcheTypes().toApiResult(moshi)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -38,7 +38,7 @@ class DemarcheRepository(private val api: GrcApiService) {
         withContext(Dispatchers.IO) {
             try {
                 api.submitDemarche(SubmitDemarcheRequest(typeSlug, donnees)).toApiResult(moshi)
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 networkErrorResult(e)
             }
         }
@@ -46,7 +46,7 @@ class DemarcheRepository(private val api: GrcApiService) {
     suspend fun getMyDemarches(): ApiResult<List<DemarcheResume>> = withContext(Dispatchers.IO) {
         try {
             api.getMyDemarches().toApiResult(moshi)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -54,7 +54,7 @@ class DemarcheRepository(private val api: GrcApiService) {
     suspend fun getDemarche(id: Int): ApiResult<DemarcheDetail> = withContext(Dispatchers.IO) {
         try {
             api.getDemarche(id).toApiResult(moshi)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
@@ -62,7 +62,7 @@ class DemarcheRepository(private val api: GrcApiService) {
     suspend fun addMessage(demarcheId: Int, contenu: String): ApiResult<AddMessageResponse> = withContext(Dispatchers.IO) {
         try {
             api.addDemarcheMessage(demarcheId, contenu).toApiResult(moshi)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             networkErrorResult(e)
         }
     }
