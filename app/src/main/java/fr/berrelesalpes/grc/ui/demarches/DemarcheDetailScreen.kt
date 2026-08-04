@@ -148,7 +148,7 @@ fun DemarcheDetailScreen(
 
 @Composable
 private fun DossierRecap(dossier: DemarcheDetail) {
-    Text(text = dossier.typeNom ?: dossier.typeDemarche, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+    Text(text = dossier.typeNom ?: dossier.typeDemarche ?: "Démarche", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
     Spacer(Modifier.height(4.dp))
     Text(text = "Statut : ${DemarcheStatuts.label(dossier.statut)}", style = MaterialTheme.typography.bodyMedium)
     Spacer(Modifier.height(12.dp))

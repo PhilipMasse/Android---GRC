@@ -30,11 +30,11 @@ data class DemarcheType(
 @JsonClass(generateAdapter = true)
 data class DemarcheResume(
     val id: Int,
-    @Json(name = "numero_dossier") val numeroDossier: String,
-    @Json(name = "type_demarche") val typeDemarche: String,
+    @Json(name = "numero_dossier") val numeroDossier: String?,
+    @Json(name = "type_demarche") val typeDemarche: String?,
     @Json(name = "type_nom") val typeNom: String?,
-    val statut: String,
-    @Json(name = "created_at") val createdAt: String,
+    val statut: String?,
+    @Json(name = "created_at") val createdAt: String?,
     @Json(name = "updated_at") val updatedAt: String?,
 )
 
@@ -51,7 +51,7 @@ data class DemarcheMessage(
     val id: Int,
     @Json(name = "auteur_type") val auteurType: String, // "agent" | "citoyen"
     val contenu: String,
-    @Json(name = "created_at") val createdAt: String,
+    @Json(name = "created_at") val createdAt: String?,
     @Json(name = "pieces_jointes") val piecesJointes: List<PieceJointe> = emptyList(),
 )
 
@@ -59,14 +59,14 @@ data class DemarcheMessage(
 @JsonClass(generateAdapter = true)
 data class DemarcheDetail(
     val id: Int,
-    @Json(name = "numero_dossier") val numeroDossier: String,
-    @Json(name = "type_demarche") val typeDemarche: String,
+    @Json(name = "numero_dossier") val numeroDossier: String?,
+    @Json(name = "type_demarche") val typeDemarche: String?,
     @Json(name = "type_nom") val typeNom: String?,
-    val statut: String,
+    val statut: String?,
     // Map clé de champ -> valeur saisie par le citoyen (types dynamiques : String, Double, null...).
     val donnees: Map<String, Any?> = emptyMap(),
     val champs: List<ChampDemarche> = emptyList(),
-    @Json(name = "created_at") val createdAt: String,
+    @Json(name = "created_at") val createdAt: String?,
     @Json(name = "pieces_jointes") val piecesJointes: List<PieceJointe> = emptyList(),
     val messages: List<DemarcheMessage> = emptyList(),
 )
@@ -100,5 +100,5 @@ object DemarcheStatuts {
         "complement_requis" to "Complément requis",
     )
 
-    fun label(statut: String): String = labels[statut] ?: statut
+    fun label(statut: String?): String = statut?.let { labels[it] ?: it } ?: "Statut inconnu"
 }

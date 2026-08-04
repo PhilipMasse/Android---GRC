@@ -38,7 +38,7 @@ import fr.berrelesalpes.grc.data.model.DemarcheResume
 import fr.berrelesalpes.grc.data.model.DemarcheStatuts
 import fr.berrelesalpes.grc.ui.common.ErrorBanner
 
-private fun statutColor(statut: String): Color = when (statut) {
+private fun statutColor(statut: String?): Color = when (statut) {
     "valide" -> Color(0xFF587526)
     "rejete" -> Color(0xFFB32D2E)
     "complement_requis" -> Color(0xFF8A6414)
@@ -124,7 +124,7 @@ private fun DemarcheCard(demarche: DemarcheResume, onClick: () -> Unit) {
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
-                text = demarche.typeNom ?: demarche.typeDemarche,
+                text = demarche.typeNom ?: demarche.typeDemarche ?: "Démarche",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -141,6 +141,6 @@ private fun DemarcheCard(demarche: DemarcheResume, onClick: () -> Unit) {
             }
         }
         Spacer(Modifier.height(4.dp))
-        Text(text = demarche.numeroDossier, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+        Text(text = demarche.numeroDossier ?: "Numéro en attente d'attribution", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
     }
 }
