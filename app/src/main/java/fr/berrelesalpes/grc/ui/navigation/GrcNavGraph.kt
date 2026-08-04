@@ -22,6 +22,14 @@ import fr.berrelesalpes.grc.ui.auth.ResetPasswordViewModel
 import fr.berrelesalpes.grc.ui.auth.TwoFactorScreen
 import fr.berrelesalpes.grc.ui.auth.TwoFactorViewModel
 import fr.berrelesalpes.grc.ui.common.SimpleViewModelFactory
+import fr.berrelesalpes.grc.ui.demarches.DemarcheDetailScreen
+import fr.berrelesalpes.grc.ui.demarches.DemarcheDetailViewModel
+import fr.berrelesalpes.grc.ui.demarches.DemarcheFormScreen
+import fr.berrelesalpes.grc.ui.demarches.DemarcheFormViewModel
+import fr.berrelesalpes.grc.ui.demarches.DemarcheListScreen
+import fr.berrelesalpes.grc.ui.demarches.DemarcheListViewModel
+import fr.berrelesalpes.grc.ui.demarches.DemarcheTypeSelectScreen
+import fr.berrelesalpes.grc.ui.demarches.DemarcheTypeSelectViewModel
 import fr.berrelesalpes.grc.ui.home.HomeScreen
 import fr.berrelesalpes.grc.ui.home.HomeViewModel
 import java.net.URLDecoder
@@ -36,14 +44,22 @@ object GrcDestinations {
     const val TWO_FACTOR = "two_factor/{pendingToken}/{method}"
     const val HOME = "home"
 
+    const val DEMARCHE_LIST = "demarche_list"
+    const val DEMARCHE_TYPE_SELECT = "demarche_type_select"
+    const val DEMARCHE_FORM = "demarche_form/{typeSlug}"
+    const val DEMARCHE_DETAIL = "demarche_detail/{id}"
+
     fun resetPassword(token: String) = "reset_password/${URLEncoder.encode(token, "UTF-8")}"
     fun twoFactor(pendingToken: String, method: String) =
         "two_factor/${URLEncoder.encode(pendingToken, "UTF-8")}/${URLEncoder.encode(method, "UTF-8")}"
+    fun demarcheForm(typeSlug: String) = "demarche_form/${URLEncoder.encode(typeSlug, "UTF-8")}"
+    fun demarcheDetail(id: Int) = "demarche_detail/$id"
 }
 
 @Composable
 fun GrcNavGraph(application: GrcApplication, navController: NavHostController = rememberNavController()) {
     val repository = application.authRepository
+    val demarcheRepository = application.demarcheRepository
     val tokenManager: TokenManager = application.tokenManager
 
     val startDestination = if (tokenManager.isLoggedIn.value) GrcDestinations.HOME else GrcDestinations.LOGIN
@@ -133,6 +149,55 @@ fun GrcNavGraph(application: GrcApplication, navController: NavHostController = 
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onOpenDemarches = { navController.navigate(GrcDestinations.DEMARCHE_LIST) },
+            )
+        }
+
+        composable(GrcDestinations.DEMARCHE_LIST) {
+            val vm: DemarcheListViewModel = viewModel(factory = SimpleViewModelFactory { DemarcheListViewModel(demarcheRepository) })
+            DemarcheListScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onOpenDemarche = { id -> navController.navigate(GrcDestinations.demarcheDetail(id)) },
+                onNewDemarche = { navController.navigate(GrcDestinations.DEMARCHE_TYPE_SELECT) },
+            )
+        }
+
+        composable(GrcDestinations.DEMARCHE_TYPE_SELECT) {
+            val vm: DemarcheTypeSelectViewModel = viewModel(factory = SimpleViewModelFactory { DemarcheTypeSelectViewModel(demarcheRepository) })
+            DemarcheTypeSelectScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onTypeSelected = { slug -> navController.navigate(GrcDestinations.demarcheForm(slug)) },
+            )
+        }
+
+        composable(
+            route = GrcDestinations.DEMARCHE_FORM,
+            arguments = listOf(navArgument("typeSlug") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val typeSlug = URLDecoder.decode(backStackEntry.arguments?.getString("typeSlug") ?: "", "UTF-8")
+            val vm: DemarcheFormViewModel = viewModel(factory = SimpleViewModelFactory { DemarcheFormViewModel(demarcheRepository, typeSlug) })
+            DemarcheFormScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onSubmitted = {
+                    navController.navigate(GrcDestinations.DEMARCHE_LIST) {
+                        popUpTo(GrcDestinations.DEMARCHE_LIST) { inclusive = true }
+                    }
+                },
+            )
+        }
+
+        composable(
+            route = GrcDestinations.DEMARCHE_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("id") ?: 0
+            val vm: DemarcheDetailViewModel = viewModel(factory = SimpleViewModelFactory { DemarcheDetailViewModel(demarcheRepository, id) })
+            DemarcheDetailScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
             )
         }
     }
