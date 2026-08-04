@@ -19,8 +19,8 @@ import retrofit2.http.POST
 
 /**
  * Décrit les routes de /wp-json/grc/v1/ consommées par l'application.
- * Voir includes/class-grc-rest-api.php et includes/rest/*.php côté plugin
- * WordPress pour la définition faisant foi de chaque route.
+ * Voir includes/class-grc-rest-api.php et le dossier includes/rest/ côté
+ * plugin WordPress pour la définition faisant foi de chaque route.
  */
 interface GrcApiService {
 
