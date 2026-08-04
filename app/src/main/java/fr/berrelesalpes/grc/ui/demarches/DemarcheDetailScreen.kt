@@ -151,6 +151,7 @@ private fun DossierRecap(dossier: DemarcheDetail) {
     Text(text = dossier.typeNom ?: dossier.typeDemarche ?: "Démarche", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
     Spacer(Modifier.height(4.dp))
     Text(text = "Statut : ${DemarcheStatuts.label(dossier.statut)}", style = MaterialTheme.typography.bodyMedium)
+    Text(text = "Déposée le " + fr.berrelesalpes.grc.ui.common.DateFormatters.formatDate(dossier.createdAt), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
     Spacer(Modifier.height(12.dp))
 
     if (dossier.champs.isNotEmpty()) {
@@ -193,5 +194,11 @@ private fun MessageBubble(message: DemarcheMessage) {
         )
         Spacer(Modifier.height(4.dp))
         Text(text = message.contenu, style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = fr.berrelesalpes.grc.ui.common.DateFormatters.formatDateTime(message.createdAt),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray,
+        )
     }
 }

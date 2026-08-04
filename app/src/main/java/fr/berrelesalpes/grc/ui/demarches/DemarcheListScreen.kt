@@ -142,5 +142,10 @@ private fun DemarcheCard(demarche: DemarcheResume, onClick: () -> Unit) {
         }
         Spacer(Modifier.height(4.dp))
         Text(text = demarche.numeroDossier ?: "Numéro en attente d'attribution", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+        Text(
+            text = "Créée le " + fr.berrelesalpes.grc.ui.common.DateFormatters.formatDate(demarche.createdAt),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray,
+        )
     }
 }
