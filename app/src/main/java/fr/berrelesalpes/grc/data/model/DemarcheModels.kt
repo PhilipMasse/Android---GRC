@@ -90,6 +90,17 @@ data class AddMessageResponse(
     @Json(name = "pieces_jointes") val piecesJointes: List<PieceJointe> = emptyList(),
 )
 
+/** Résultat individuel d'un envoi de fichier (un par fichier, succès ou échec indépendant des autres). */
+@JsonClass(generateAdapter = true)
+data class PieceJointeUploadResult(
+    val id: Int? = null,
+    @Json(name = "nom_original") val nomOriginal: String? = null,
+    @Json(name = "mime_type") val mimeType: String? = null,
+    @Json(name = "download_url") val downloadUrl: String? = null,
+    val error: Boolean = false,
+    val message: String? = null,
+)
+
 /** Statuts possibles d'un dossier, avec leur libellé français (voir class-grc-admin-demarches.php). */
 object DemarcheStatuts {
     val labels = mapOf(

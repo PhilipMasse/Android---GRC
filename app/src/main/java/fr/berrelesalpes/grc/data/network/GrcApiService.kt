@@ -18,12 +18,17 @@ import fr.berrelesalpes.grc.data.model.SubmitDemarcheRequest
 import fr.berrelesalpes.grc.data.model.SubmitDemarcheResponse
 import fr.berrelesalpes.grc.data.model.TokenResponse
 import fr.berrelesalpes.grc.data.model.TwoFactorVerifyRequest
+import fr.berrelesalpes.grc.data.model.PieceJointeUploadResult
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 /**
@@ -83,4 +88,20 @@ interface GrcApiService {
         @Path("id") id: Int,
         @Field("contenu") contenu: String,
     ): Response<AddMessageResponse>
+
+    /** Variante multipart, utilisée quand le message est accompagné d'au moins un fichier. */
+    @Multipart
+    @POST("demarches/{id}/messages")
+    suspend fun addDemarcheMessageWithFiles(
+        @Path("id") id: Int,
+        @Part("contenu") contenu: RequestBody,
+        @Part files: List<MultipartBody.Part>,
+    ): Response<AddMessageResponse>
+
+    @Multipart
+    @POST("demarches/{id}/pieces-jointes")
+    suspend fun uploadDemarchePieces(
+        @Path("id") id: Int,
+        @Part files: List<MultipartBody.Part>,
+    ): Response<List<PieceJointeUploadResult>>
 }

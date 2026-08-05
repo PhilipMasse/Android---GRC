@@ -5,10 +5,10 @@ Mairie de Berre-les-Alpes. Consomme l'API REST du plugin WordPress
 [WordPress---GRC](https://github.com/PhilipMasse/WordPress---GRC)
 (`/wp-json/grc/v1/`).
 
-## État actuel — v0.2.0
+## État actuel — v0.2.1
 
-Deuxième lot : module des démarches administratives, en plus des fondations
-et de l'authentification livrées en v0.1.0.
+Module des démarches administratives complet (v0.2.0), avec sélecteur de
+date et envoi de documents multiples ajoutés en v0.2.1.
 
 - ✅ Connexion (avec gestion de la double authentification, email ou TOTP)
 - ✅ Inscription (captcha interne uniquement — voir limitations ci-dessous)
@@ -16,12 +16,15 @@ et de l'authentification livrées en v0.1.0.
 - ✅ Rafraîchissement automatique du jeton de session
 - ✅ Stockage chiffré des jetons (Android Keystore)
 - ✅ **Démarches administratives** : liste "Mes démarches", choix du type,
-  formulaire dynamique (texte, liste déroulante, email, nombre, date,
-  téléphone), détail d'un dossier avec fil de messages (lecture + envoi)
+  formulaire dynamique (texte, liste déroulante, email, nombre, **date via
+  sélecteur natif, affichée en JJ/MM/AAAA**, téléphone), détail d'un dossier
+  avec fil de messages (lecture + envoi)
+- ✅ **Envoi de documents multiples** : à la création d'une démarche (section
+  "Documents à joindre", plusieurs fichiers en une fois) et dans les réponses
+  du fil de messages — même principe que le site web (création du dossier,
+  puis envoi séparé des fichiers)
 - ⏳ Signalements, rendez-vous : **pas encore implémentés**, prévus dans une
   prochaine version
-- ⏳ Pièces jointes sur les démarches : **pas encore implémentées** (voir
-  limitations ci-dessous)
 
 ## ⚠️ Important : ce projet n'a pas été compilé
 
@@ -101,11 +104,10 @@ projet grossit significativement dans les prochains lots.
   intercepter automatiquement le lien reçu par email et ouvrir l'application.
   Cela nécessite de configurer `assetlinks.json` sur le domaine du site et un
   `intent-filter` dans le manifeste — à faire dans un prochain lot.
-- **Pièces jointes sur les démarches** : les champs de type "fichier" sont
-  affichés dans le formulaire avec un message clair invitant à utiliser le
-  site web pour ce document, plutôt que d'être masqués silencieusement ou de
-  bloquer la soumission. L'envoi de fichier (multipart) vers
-  `POST /demarches/{id}/messages` est prévu pour un prochain lot.
+- **Taille des documents** : aucune vérification de taille n'est faite côté
+  application avant envoi (le serveur applique sa propre limite de 8 Mo par
+  fichier et refuse proprement les fichiers trop volumineux, mais l'appli ne
+  prévient pas l'utilisateur avant l'envoi).
 - **Signalements et rendez-vous** : pas encore implémentés.
 
 ## Correspondance avec l'API

@@ -14,9 +14,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,10 +37,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import fr.berrelesalpes.grc.data.model.DemarcheDetail
 import fr.berrelesalpes.grc.data.model.DemarcheMessage
 import fr.berrelesalpes.grc.data.model.DemarcheStatuts
+import fr.berrelesalpes.grc.ui.common.DateFormatters
 import fr.berrelesalpes.grc.ui.common.ErrorBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +52,10 @@ fun DemarcheDetailScreen(
     onBack: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris -> viewModel.onFichiersSelectionnes(uris) }
 
     Scaffold(
         topBar = {
@@ -109,6 +119,32 @@ fun DemarcheDetailScreen(
                         }
                     }
 
+                    // Fichiers en attente d'envoi avec le prochain message.
+                    if (state.fichiersMessage.isNotEmpty()) {
+                        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                            state.fichiersMessage.forEach { uri ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color(0xFFEEF4FA), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = uri.lastPathSegment ?: "Document",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    IconButton(onClick = { viewModel.retirerFichier(uri) }, enabled = !state.isSendingMessage) {
+                                        Icon(Icons.Filled.Close, contentDescription = "Retirer", modifier = Modifier.width(18.dp))
+                                    }
+                                }
+                                Spacer(Modifier.height(4.dp))
+                            }
+                        }
+                    }
+
                     // Zone de saisie d'un nouveau message, fixée en bas de l'écran.
                     Row(
                         modifier = Modifier
@@ -116,6 +152,12 @@ fun DemarcheDetailScreen(
                             .padding(horizontal = 16.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        IconButton(
+                            onClick = { filePickerLauncher.launch("*/*") },
+                            enabled = !state.isSendingMessage,
+                        ) {
+                            Icon(Icons.Filled.AttachFile, contentDescription = "Joindre un document", tint = MaterialTheme.colorScheme.primary)
+                        }
                         OutlinedTextField(
                             value = state.nouveauMessage,
                             onValueChange = viewModel::onMessageChange,
@@ -126,8 +168,8 @@ fun DemarcheDetailScreen(
                         )
                         Spacer(Modifier.width(8.dp))
                         IconButton(
-                            onClick = viewModel::sendMessage,
-                            enabled = !state.isSendingMessage && state.nouveauMessage.isNotBlank(),
+                            onClick = { viewModel.sendMessage(context.contentResolver, context.cacheDir) },
+                            enabled = !state.isSendingMessage && (state.nouveauMessage.isNotBlank() || state.fichiersMessage.isNotEmpty()),
                         ) {
                             if (state.isSendingMessage) {
                                 CircularProgressIndicator(modifier = Modifier.width(20.dp), strokeWidth = 2.dp)

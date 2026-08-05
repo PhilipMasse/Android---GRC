@@ -66,4 +66,34 @@ class DemarcheRepository(private val api: GrcApiService) {
             networkErrorResult(e)
         }
     }
+
+    suspend fun addMessageWithFiles(
+        demarcheId: Int,
+        contenu: String,
+        fichiers: List<MultipartBody.Part>,
+    ): ApiResult<AddMessageResponse> = withContext(Dispatchers.IO) {
+        try {
+            val contenuBody = contenu.toRequestBody("text/plain".toMediaTypeOrNull())
+            api.addDemarcheMessageWithFiles(demarcheId, contenuBody, fichiers).toApiResult(moshi)
+        } catch (e: Exception) {
+            networkErrorResult(e)
+        }
+    }
+
+    /**
+     * Envoie une ou plusieurs pièces jointes vers un dossier déjà créé.
+     * Chaque fichier est traité indépendamment côté serveur : un échec sur
+     * l'un d'eux n'empêche pas les autres d'être acceptés (voir la réponse
+     * détaillée par fichier dans [PieceJointeUploadResult]).
+     */
+    suspend fun uploadPieces(
+        demarcheId: Int,
+        fichiers: List<MultipartBody.Part>,
+    ): ApiResult<List<PieceJointeUploadResult>> = withContext(Dispatchers.IO) {
+        try {
+            api.uploadDemarchePieces(demarcheId, fichiers).toApiResult(moshi)
+        } catch (e: Exception) {
+            networkErrorResult(e)
+        }
+    }
 }
