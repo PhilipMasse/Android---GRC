@@ -2,6 +2,7 @@ package fr.berrelesalpes.grc.ui.common
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.view.View
 import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
@@ -39,8 +40,16 @@ fun LeafletMapView(
         modifier = modifier.fillMaxWidth().height(260.dp),
         factory = { context ->
             WebView(context).apply {
+                // Corrige un problème connu et fréquent : une WebView intégrée
+                // dans une interface Compose (via AndroidView) reste parfois
+                // entièrement blanche à cause d'un conflit avec l'accélération
+                // matérielle par défaut. Le rendu logiciel évite ce problème.
+                setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                settings.useWideViewPort = true
+                settings.loadWithOverviewMode = true
                 // Autorise le chargement de ressources distantes (CDN Leaflet,
                 // tuiles OpenStreetMap) depuis une page locale (file://), et
                 // désactive le cache pour toujours charger la dernière version
