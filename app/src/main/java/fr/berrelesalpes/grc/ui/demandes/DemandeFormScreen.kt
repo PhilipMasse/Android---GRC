@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -43,10 +44,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.net.Uri
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import fr.berrelesalpes.grc.data.location.CameraCaptureHelper
 import fr.berrelesalpes.grc.ui.common.ErrorBanner
 import fr.berrelesalpes.grc.ui.common.GrcPrimaryButton
 import fr.berrelesalpes.grc.ui.common.GrcTextField
@@ -82,6 +85,40 @@ fun DemandeFormScreen(
         contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris -> viewModel.onPhotosSelectionnees(uris) }
     val typesPhotosAutorises = arrayOf("image/jpeg", "image/png", "image/webp", "image/gif")
+
+    // Capture directe via l'appareil photo : nécessite un fichier temporaire
+    // créé AVANT de lancer l'appareil photo (son Uri content:// est passé en
+    // paramètre), d'où la variable d'état conservant la référence entre les
+    // deux étapes (préparation puis résultat de la capture).
+    var fichierPhotoEnCours by remember { mutableStateOf<Pair<java.io.File, Uri>?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { succes ->
+        val prepare = fichierPhotoEnCours
+        if (succes && prepare != null) {
+            viewModel.onPhotosSelectionnees(listOf(prepare.second))
+        }
+        fichierPhotoEnCours = null
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { accorde ->
+        if (accorde) {
+            val prepare = CameraCaptureHelper.creerFichierPhotoTemporaire(context)
+            fichierPhotoEnCours = prepare
+            cameraLauncher.launch(prepare.second)
+        }
+    }
+    fun lancerCapturePhoto() {
+        val dejaAccorde = context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        if (dejaAccorde) {
+            val prepare = CameraCaptureHelper.creerFichierPhotoTemporaire(context)
+            fichierPhotoEnCours = prepare
+            cameraLauncher.launch(prepare.second)
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -231,10 +268,18 @@ fun DemandeFormScreen(
                 Spacer(Modifier.height(20.dp))
                 Text(text = "Photos (facultatif)", style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.height(6.dp))
-                OutlinedButton(onClick = { photoPickerLauncher.launch(typesPhotosAutorises) }, enabled = !state.isSubmitting) {
-                    Icon(Icons.Filled.AddAPhoto, contentDescription = null)
-                    Spacer(Modifier.width(6.dp))
-                    Text("Choisir une ou plusieurs photos")
+                Row {
+                    OutlinedButton(onClick = { lancerCapturePhoto() }, enabled = !state.isSubmitting) {
+                        Icon(Icons.Filled.PhotoCamera, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Prendre une photo")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(onClick = { photoPickerLauncher.launch(typesPhotosAutorises) }, enabled = !state.isSubmitting) {
+                        Icon(Icons.Filled.AddAPhoto, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Choisir")
+                    }
                 }
             }
 

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Correspond à context.cacheDir/photos/, où les photos capturées sont
+         temporairement écrites avant envoi (voir CameraCaptureHelper.kt). -->
+    <cache-path name="photos" path="photos/" />
+</paths>
