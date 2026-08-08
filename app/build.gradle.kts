@@ -12,8 +12,8 @@ android {
         applicationId = "fr.berrelesalpes.grc"
         minSdk = 26 // Android 8.0 — couvre la quasi-totalité du parc actif.
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.2.1"
+        versionCode = 4
+        versionName = "0.2.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

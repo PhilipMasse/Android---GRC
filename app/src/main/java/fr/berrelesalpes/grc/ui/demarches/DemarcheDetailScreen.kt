@@ -59,6 +59,8 @@ fun DemarcheDetailScreen(
     val typesDocumentsAutorises = arrayOf(
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "image/jpeg",
+        "image/png",
     )
 
     Scaffold(

@@ -77,6 +77,8 @@ fun DemarcheFormScreen(
     val typesDocumentsAutorises = arrayOf(
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "image/jpeg",
+        "image/png",
     )
 
     Scaffold(
@@ -216,7 +218,7 @@ private fun DemarcheChampField(
                 style = MaterialTheme.typography.labelLarge,
             )
             Text(
-                text = "Joignez ce document (PDF ou Word) depuis la section \"Documents à joindre\" ci-dessous.",
+                text = "Joignez ce document (PDF, Word, JPG ou PNG) depuis la section \"Documents à joindre\" ci-dessous.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
             )
