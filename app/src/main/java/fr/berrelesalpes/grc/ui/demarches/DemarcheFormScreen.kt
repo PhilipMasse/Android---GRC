@@ -24,8 +24,8 @@ import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedButton
@@ -353,7 +353,11 @@ private fun DemarcheChampField(
                     modifier = Modifier.menuAnchor(),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuOuvert) },
                 )
-                ExposedDropdownMenu(expanded = menuOuvert, onDismissRequest = { menuOuvert = false }) {
+                DropdownMenu(
+                    expanded = menuOuvert,
+                    onDismissRequest = { menuOuvert = false },
+                    modifier = Modifier.exposedDropdownSize(),
+                ) {
                     INDICATIFS.forEach { indicatif ->
                         DropdownMenuItem(
                             text = { Text("${indicatif.drapeau} ${indicatif.dial} (${indicatif.nom})") },
