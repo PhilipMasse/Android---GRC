@@ -4,7 +4,6 @@ import android.content.ContentResolver
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.berrelesalpes.grc.data.model.ChampDemarche
 import fr.berrelesalpes.grc.data.model.DemarcheType
 import fr.berrelesalpes.grc.data.network.ApiResult
 import fr.berrelesalpes.grc.data.network.MultipartFileHelper
@@ -93,12 +92,20 @@ class DemarcheFormViewModel(
 
         _uiState.value = state.copy(isSubmitting = true, errorMessage = null, avertissementFichiers = null)
         viewModelScope.launch {
-            // Les champs de type "file" ne font pas partie des données JSON du
-            // dossier : ils sont envoyés séparément après création (voir plus bas),
-            // à l'identique du fonctionnement du site web.
-            val donnees = state.valeurs.filterKeys { key ->
-                type.champs.firstOrNull { it.key == key }?.type != "file"
-            }
+            // Les champs de type "file" doivent tout de même porter une valeur
+            // non vide dans "donnees" : le serveur vérifie le caractère
+            // obligatoire de TOUS les champs sur cette base, y compris les
+            // fichiers (le contenu réel est envoyé séparément juste après la
+            // création du dossier). On y place les noms des fichiers
+            // sélectionnés, à l'identique du comportement du site web.
+            val nomsFichiers = state.fichiersSelectionnes.joinToString(", ") { uri -> uri.lastPathSegment ?: "document" }
+            val donnees = type.champs.mapNotNull { champ ->
+                if (champ.type == "file") {
+                    if (state.fichiersSelectionnes.isNotEmpty()) champ.key to nomsFichiers else null
+                } else {
+                    state.valeurs[champ.key]?.let { champ.key to it }
+                }
+            }.toMap()
 
             when (val result = repository.submit(type.slug, donnees)) {
                 is ApiResult.Success -> {
@@ -137,5 +144,3 @@ class DemarcheFormViewModel(
     }
 }
 
-/** Champs supportés par le formulaire dynamique dans cette version de l'application. */
-fun ChampDemarche.isSupported(): Boolean = true
