@@ -177,7 +177,7 @@ fun GrcNavGraph(application: GrcApplication, navController: NavHostController = 
         }
 
         composable(GrcDestinations.DEMANDE_FORM) {
-            val vm: DemandeFormViewModel = viewModel(factory = SimpleViewModelFactory { DemandeFormViewModel(demandeRepository) })
+            val vm: DemandeFormViewModel = viewModel(factory = SimpleViewModelFactory { savedStateHandle -> DemandeFormViewModel(demandeRepository, savedStateHandle) })
             DemandeFormScreen(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },

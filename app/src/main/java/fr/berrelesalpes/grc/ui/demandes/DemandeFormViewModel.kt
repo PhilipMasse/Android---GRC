@@ -3,6 +3,7 @@ package fr.berrelesalpes.grc.ui.demandes
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.berrelesalpes.grc.data.location.LocationHelper
@@ -35,9 +36,31 @@ data class DemandeFormUiState(
     val submittedNumero: String? = null,
 )
 
-class DemandeFormViewModel(private val repository: DemandeRepository) : ViewModel() {
+/**
+ * Reçoit un [SavedStateHandle] et y sauvegarde en continu les champs
+ * saisis par le citoyen (titre, description, catégorie, position, photos).
+ * Nécessaire car Android peut détruire puis recréer le processus de
+ * l'application pendant qu'elle est en arrière-plan (par exemple lorsque le
+ * citoyen prend une photo : l'application Appareil photo, gourmande en
+ * mémoire, peut déclencher cela) — sans ce mécanisme, un ViewModel "normal"
+ * repartirait de zéro et le formulaire en cours de saisie serait perdu.
+ */
+class DemandeFormViewModel(
+    private val repository: DemandeRepository,
+    private val savedStateHandle: SavedStateHandle,
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(DemandeFormUiState())
+    private val _uiState = MutableStateFlow(
+        DemandeFormUiState(
+            titre = savedStateHandle.get<String>(CLE_TITRE) ?: "",
+            description = savedStateHandle.get<String>(CLE_DESCRIPTION) ?: "",
+            categorieId = savedStateHandle.get<Int>(CLE_CATEGORIE_ID),
+            latitude = savedStateHandle.get<Double>(CLE_LATITUDE),
+            longitude = savedStateHandle.get<Double>(CLE_LONGITUDE),
+            adresse = savedStateHandle.get<String>(CLE_ADRESSE),
+            photosSelectionnees = savedStateHandle.get<ArrayList<Uri>>(CLE_PHOTOS) ?: emptyList(),
+        )
+    )
     val uiState: StateFlow<DemandeFormUiState> = _uiState.asStateFlow()
 
     init {
@@ -49,37 +72,62 @@ class DemandeFormViewModel(private val repository: DemandeRepository) : ViewMode
         }
     }
 
+    /**
+     * Applique la mise à jour à l'état, puis sauvegarde les champs critiques
+     * (pas la totalité de l'état — les catégories chargées ou la liste des
+     * doublons détectés seront simplement rechargées, inutile de les
+     * persister) dans le SavedStateHandle.
+     */
+    private fun updateState(update: (DemandeFormUiState) -> DemandeFormUiState) {
+        val nouveau = update(_uiState.value)
+        _uiState.value = nouveau
+        savedStateHandle[CLE_TITRE] = nouveau.titre
+        savedStateHandle[CLE_DESCRIPTION] = nouveau.description
+        savedStateHandle[CLE_CATEGORIE_ID] = nouveau.categorieId
+        savedStateHandle[CLE_LATITUDE] = nouveau.latitude
+        savedStateHandle[CLE_LONGITUDE] = nouveau.longitude
+        savedStateHandle[CLE_ADRESSE] = nouveau.adresse
+        savedStateHandle[CLE_PHOTOS] = ArrayList(nouveau.photosSelectionnees)
+    }
+
     fun onTitreChange(value: String) {
-        _uiState.value = _uiState.value.copy(titre = value, errorMessage = null)
+        updateState { it.copy(titre = value, errorMessage = null) }
     }
 
     fun onDescriptionChange(value: String) {
-        _uiState.value = _uiState.value.copy(description = value, errorMessage = null)
+        updateState { it.copy(description = value, errorMessage = null) }
     }
 
     fun onCategorieChange(id: Int?) {
-        _uiState.value = _uiState.value.copy(categorieId = id)
+        updateState { it.copy(categorieId = id) }
     }
 
     fun onPhotosSelectionnees(uris: List<Uri>) {
-        val s = _uiState.value
-        _uiState.value = s.copy(photosSelectionnees = (s.photosSelectionnees + uris).distinct())
+        updateState { it.copy(photosSelectionnees = (it.photosSelectionnees + uris).distinct()) }
     }
 
     fun retirerPhoto(uri: Uri) {
-        val s = _uiState.value
-        _uiState.value = s.copy(photosSelectionnees = s.photosSelectionnees.filterNot { it == uri })
+        updateState { it.copy(photosSelectionnees = it.photosSelectionnees.filterNot { p -> p == uri }) }
     }
 
     /** Positionnement manuel (clic/glisser sur la carte) : met à jour la position et relance la détection de doublons. */
     fun onPositionChoisie(context: Context, lat: Double, lng: Double) {
-        _uiState.value = _uiState.value.copy(latitude = lat, longitude = lng)
+        updateState { it.copy(latitude = lat, longitude = lng) }
         rechercherAdresse(lat, lng)
         rechercherDoublons(lat, lng)
     }
 
-    /** Géolocalisation automatique au lancement du formulaire (permission déjà vérifiée par l'écran appelant). */
+    /**
+     * Géolocalisation automatique au lancement du formulaire (permission déjà
+     * vérifiée par l'écran appelant). Si une position a déjà été enregistrée
+     * (retour après une recréation du processus), on ne l'écrase pas : la
+     * dernière position choisie par le citoyen prévaut sur une nouvelle
+     * lecture GPS.
+     */
     fun localiserAutomatiquement(context: Context) {
+        if (_uiState.value.latitude != null && _uiState.value.longitude != null) {
+            return
+        }
         _uiState.value = _uiState.value.copy(isLocalisationEnCours = true)
         viewModelScope.launch {
             val position = LocationHelper.obtenirPositionActuelle(context)
@@ -93,7 +141,7 @@ class DemandeFormViewModel(private val repository: DemandeRepository) : ViewMode
     private fun rechercherAdresse(lat: Double, lng: Double) {
         viewModelScope.launch {
             when (val result = repository.reverseGeocode(lat, lng)) {
-                is ApiResult.Success -> _uiState.value = _uiState.value.copy(adresse = result.data.adresse)
+                is ApiResult.Success -> updateState { it.copy(adresse = result.data.adresse) }
                 is ApiResult.Error -> { /* L'adresse est un simple confort d'affichage : on continue sans bloquer. */ }
             }
         }
@@ -138,6 +186,7 @@ class DemandeFormViewModel(private val repository: DemandeRepository) : ViewMode
                             isSubmitting = false,
                             submittedNumero = result.data.numeroSuivi ?: "votre signalement"
                         )
+                        effacerBrouillon()
                         return@launch
                     }
 
@@ -158,11 +207,28 @@ class DemandeFormViewModel(private val repository: DemandeRepository) : ViewMode
                         submittedNumero = result.data.numeroSuivi ?: "votre signalement",
                         avertissementPhotos = avertissement,
                     )
+                    effacerBrouillon()
                 }
                 is ApiResult.Error -> {
                     _uiState.value = _uiState.value.copy(isSubmitting = false, errorMessage = result.message)
                 }
             }
         }
+    }
+
+    /** Une fois le signalement envoyé avec succès, plus besoin de conserver le brouillon. */
+    private fun effacerBrouillon() {
+        listOf(CLE_TITRE, CLE_DESCRIPTION, CLE_CATEGORIE_ID, CLE_LATITUDE, CLE_LONGITUDE, CLE_ADRESSE, CLE_PHOTOS)
+            .forEach { savedStateHandle.remove<Any>(it) }
+    }
+
+    companion object {
+        private const val CLE_TITRE = "titre"
+        private const val CLE_DESCRIPTION = "description"
+        private const val CLE_CATEGORIE_ID = "categorieId"
+        private const val CLE_LATITUDE = "latitude"
+        private const val CLE_LONGITUDE = "longitude"
+        private const val CLE_ADRESSE = "adresse"
+        private const val CLE_PHOTOS = "photos"
     }
 }
