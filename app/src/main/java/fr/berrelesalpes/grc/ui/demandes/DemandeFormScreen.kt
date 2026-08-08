@@ -6,7 +6,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,9 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
@@ -113,146 +112,157 @@ fun DemandeFormScreen(
             return@Scaffold
         }
 
-        Column(
+        // LazyColumn plutôt que Column + verticalScroll : une WebView (la
+        // carte) intégrée dans un Column à défilement classique ne s'affiche
+        // pas de façon fiable (problème connu de Jetpack Compose), chaque
+        // section étant ici un "item" mesuré/composé indépendamment.
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
-                .verticalScroll(rememberScrollState())
         ) {
-            state.errorMessage?.let {
-                ErrorBanner(it)
-                Spacer(Modifier.height(16.dp))
-            }
+            item {
+                state.errorMessage?.let {
+                    ErrorBanner(it)
+                    Spacer(Modifier.height(16.dp))
+                }
 
-            GrcTextField(value = state.titre, onValueChange = viewModel::onTitreChange, label = "Objet du signalement *", enabled = !state.isSubmitting)
-            Spacer(Modifier.height(12.dp))
-            GrcTextField(
-                value = state.description,
-                onValueChange = viewModel::onDescriptionChange,
-                label = "Description *",
-                enabled = !state.isSubmitting,
-            )
-            Spacer(Modifier.height(12.dp))
-
-            // --- Catégorie ---
-            var menuCategorieOuvert by remember { mutableStateOf(false) }
-            val categorieChoisie = state.categories.firstOrNull { it.id == state.categorieId }
-            Text(text = "Catégorie", style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(6.dp))
-            ExposedDropdownMenuBox(
-                expanded = menuCategorieOuvert,
-                onExpandedChange = { if (!state.isSubmitting) menuCategorieOuvert = it },
-            ) {
-                OutlinedTextField(
-                    value = categorieChoisie?.nom ?: "— Sélectionner —",
-                    onValueChange = {},
-                    readOnly = true,
+                GrcTextField(value = state.titre, onValueChange = viewModel::onTitreChange, label = "Objet du signalement *", enabled = !state.isSubmitting)
+                Spacer(Modifier.height(12.dp))
+                GrcTextField(
+                    value = state.description,
+                    onValueChange = viewModel::onDescriptionChange,
+                    label = "Description *",
                     enabled = !state.isSubmitting,
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuCategorieOuvert) },
                 )
-                DropdownMenu(
+                Spacer(Modifier.height(12.dp))
+
+                // --- Catégorie ---
+                var menuCategorieOuvert by remember { mutableStateOf(false) }
+                val categorieChoisie = state.categories.firstOrNull { it.id == state.categorieId }
+                Text(text = "Catégorie", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(6.dp))
+                ExposedDropdownMenuBox(
                     expanded = menuCategorieOuvert,
-                    onDismissRequest = { menuCategorieOuvert = false },
-                    modifier = Modifier.exposedDropdownSize(),
+                    onExpandedChange = { if (!state.isSubmitting) menuCategorieOuvert = it },
                 ) {
-                    DropdownMenuItem(
-                        text = { Text("— Sélectionner —") },
-                        onClick = { viewModel.onCategorieChange(null); menuCategorieOuvert = false },
+                    OutlinedTextField(
+                        value = categorieChoisie?.nom ?: "— Sélectionner —",
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = !state.isSubmitting,
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuCategorieOuvert) },
                     )
-                    state.categories.forEach { categorie ->
+                    DropdownMenu(
+                        expanded = menuCategorieOuvert,
+                        onDismissRequest = { menuCategorieOuvert = false },
+                        modifier = Modifier.exposedDropdownSize(),
+                    ) {
                         DropdownMenuItem(
-                            text = { Text(categorie.nom) },
-                            onClick = { viewModel.onCategorieChange(categorie.id); menuCategorieOuvert = false },
+                            text = { Text("— Sélectionner —") },
+                            onClick = { viewModel.onCategorieChange(null); menuCategorieOuvert = false },
                         )
+                        state.categories.forEach { categorie ->
+                            DropdownMenuItem(
+                                text = { Text(categorie.nom) },
+                                onClick = { viewModel.onCategorieChange(categorie.id); menuCategorieOuvert = false },
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(20.dp))
+                Text(text = "Localisation", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(6.dp))
+                if (state.isLocalisationEnCours) {
+                    Row {
+                        CircularProgressIndicator(modifier = Modifier.height(16.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Localisation en cours…", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
-            Text(text = "Localisation", style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(6.dp))
-            if (state.isLocalisationEnCours) {
-                Row {
-                    CircularProgressIndicator(modifier = Modifier.height(16.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Localisation en cours…", style = MaterialTheme.typography.bodyMedium)
-                }
+            item {
+                LeafletMapView(
+                    latitude = state.latitude,
+                    longitude = state.longitude,
+                    onPositionSelected = { lat, lng -> viewModel.onPositionChoisie(context, lat, lng) },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-            LeafletMapView(
-                latitude = state.latitude,
-                longitude = state.longitude,
-                onPositionSelected = { lat, lng -> viewModel.onPositionChoisie(context, lat, lng) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            state.adresse?.let {
-                Spacer(Modifier.height(6.dp))
-                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-            }
-            Text(
-                text = "Touchez ou glissez le repère pour ajuster précisément l'emplacement.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-            )
 
-            if (state.demandesProches.isNotEmpty()) {
-                Spacer(Modifier.height(10.dp))
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFFFF3CD), RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = "⚠️ ${state.demandesProches.size} signalement(s) déjà en cours à proximité — vérifiez qu'il ne s'agit pas du même problème :",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF664D03),
-                    )
-                    state.demandesProches.forEach { proche ->
+            item {
+                state.adresse?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                }
+                Text(
+                    text = "Touchez ou glissez le repère pour ajuster précisément l'emplacement.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                )
+
+                if (state.demandesProches.isNotEmpty()) {
+                    Spacer(Modifier.height(10.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFFFF3CD), RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
                         Text(
-                            text = "• ${proche.titre} — ${proche.statut}, à ${proche.distanceM} m (${proche.date})",
+                            text = "⚠️ ${state.demandesProches.size} signalement(s) déjà en cours à proximité — vérifiez qu'il ne s'agit pas du même problème :",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color(0xFF664D03),
                         )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(20.dp))
-            Text(text = "Photos (facultatif)", style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(6.dp))
-            OutlinedButton(onClick = { photoPickerLauncher.launch(typesPhotosAutorises) }, enabled = !state.isSubmitting) {
-                Icon(Icons.Filled.AddAPhoto, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text("Choisir une ou plusieurs photos")
-            }
-            if (state.photosSelectionnees.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                state.photosSelectionnees.forEach { uri ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFFF4F6F9), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(text = uri.lastPathSegment ?: "Photo", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                        IconButton(onClick = { viewModel.retirerPhoto(uri) }, enabled = !state.isSubmitting) {
-                            Icon(Icons.Filled.Close, contentDescription = "Retirer")
+                        state.demandesProches.forEach { proche ->
+                            Text(
+                                text = "• ${proche.titre} — ${proche.statut}, à ${proche.distanceM} m (${proche.date})",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF664D03),
+                            )
                         }
                     }
-                    Spacer(Modifier.height(4.dp))
+                }
+
+                Spacer(Modifier.height(20.dp))
+                Text(text = "Photos (facultatif)", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(6.dp))
+                OutlinedButton(onClick = { photoPickerLauncher.launch(typesPhotosAutorises) }, enabled = !state.isSubmitting) {
+                    Icon(Icons.Filled.AddAPhoto, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Choisir une ou plusieurs photos")
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
-            GrcPrimaryButton(
-                text = "Envoyer le signalement",
-                onClick = { viewModel.submit(context.contentResolver, context.cacheDir) },
-                isLoading = state.isSubmitting,
-            )
-            Spacer(Modifier.height(24.dp))
+            items(state.photosSelectionnees) { uri ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFF4F6F9), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(text = uri.lastPathSegment ?: "Photo", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { viewModel.retirerPhoto(uri) }, enabled = !state.isSubmitting) {
+                        Icon(Icons.Filled.Close, contentDescription = "Retirer")
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+            }
+
+            item {
+                Spacer(Modifier.height(24.dp))
+                GrcPrimaryButton(
+                    text = "Envoyer le signalement",
+                    onClick = { viewModel.submit(context.contentResolver, context.cacheDir) },
+                    isLoading = state.isSubmitting,
+                )
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 }
