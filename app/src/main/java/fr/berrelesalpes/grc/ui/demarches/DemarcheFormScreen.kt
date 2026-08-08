@@ -24,7 +24,12 @@ import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -200,6 +205,49 @@ fun DemarcheFormScreen(
 private val DATE_STOCKAGE = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 private val DATE_AFFICHAGE = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
+/** Indicatif (nom, drapeau, code d'appel) — mêmes pays que le site web (assets/frontend.js, GRC_COUNTRIES). */
+private data class Indicatif(val code: String, val dial: String, val drapeau: String, val nom: String)
+
+private val INDICATIFS = listOf(
+    Indicatif("FR", "+33", "🇫🇷", "France"),
+    Indicatif("BE", "+32", "🇧🇪", "Belgique"),
+    Indicatif("CH", "+41", "🇨🇭", "Suisse"),
+    Indicatif("LU", "+352", "🇱🇺", "Luxembourg"),
+    Indicatif("MC", "+377", "🇲🇨", "Monaco"),
+    Indicatif("DE", "+49", "🇩🇪", "Allemagne"),
+    Indicatif("ES", "+34", "🇪🇸", "Espagne"),
+    Indicatif("IT", "+39", "🇮🇹", "Italie"),
+    Indicatif("GB", "+44", "🇬🇧", "Royaume-Uni"),
+    Indicatif("PT", "+351", "🇵🇹", "Portugal"),
+    Indicatif("NL", "+31", "🇳🇱", "Pays-Bas"),
+    Indicatif("US", "+1", "🇺🇸", "États-Unis"),
+    Indicatif("CA", "+1", "🇨🇦", "Canada"),
+    Indicatif("MA", "+212", "🇲🇦", "Maroc"),
+    Indicatif("DZ", "+213", "🇩🇿", "Algérie"),
+    Indicatif("TN", "+216", "🇹🇳", "Tunisie"),
+    Indicatif("RE", "+262", "🇷🇪", "La Réunion"),
+    Indicatif("GP", "+590", "🇬🇵", "Guadeloupe"),
+    Indicatif("MQ", "+596", "🇲🇶", "Martinique"),
+    Indicatif("GF", "+594", "🇬🇫", "Guyane"),
+)
+private val INDICATIF_PAR_DEFAUT = INDICATIFS.first { it.code == "FR" }
+
+/**
+ * Sépare une valeur déjà stockée (ex: "+33612345678") en indicatif + reste
+ * des chiffres, en retenant l'indicatif le plus long qui correspond — utile
+ * pour préremplir le champ si le citoyen revient sur le formulaire.
+ */
+private fun decouperNumero(valeur: String): Pair<Indicatif, String> {
+    val correspondance = INDICATIFS
+        .filter { valeur.startsWith(it.dial) }
+        .maxByOrNull { it.dial.length }
+    return if (correspondance != null) {
+        correspondance to valeur.removePrefix(correspondance.dial)
+    } else {
+        INDICATIF_PAR_DEFAUT to valeur
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DemarcheChampField(
@@ -278,10 +326,65 @@ private fun DemarcheChampField(
         return
     }
 
+    if (champ.type == "phone") {
+        val (indicatifInitial, numeroInitial) = remember(value) { decouperNumero(value) }
+        var indicatifChoisi by remember { mutableStateOf(indicatifInitial) }
+        var numero by remember { mutableStateOf(numeroInitial) }
+        var menuOuvert by remember { mutableStateOf(false) }
+
+        fun notifierChangement(nouvelIndicatif: Indicatif = indicatifChoisi, nouveauNumero: String = numero) {
+            val chiffres = nouveauNumero.filter { it.isDigit() }
+            onValueChange(if (chiffres.isNotEmpty()) nouvelIndicatif.dial + chiffres else "")
+        }
+
+        Text(text = champ.label + suffixeObligatoire, style = MaterialTheme.typography.labelLarge)
+        Spacer(Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ExposedDropdownMenuBox(
+                expanded = menuOuvert,
+                onExpandedChange = { if (enabled) menuOuvert = it },
+                modifier = Modifier.width(150.dp),
+            ) {
+                OutlinedTextField(
+                    value = "${indicatifChoisi.drapeau} ${indicatifChoisi.dial}",
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = enabled,
+                    modifier = Modifier.menuAnchor(),
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuOuvert) },
+                )
+                ExposedDropdownMenu(expanded = menuOuvert, onDismissRequest = { menuOuvert = false }) {
+                    INDICATIFS.forEach { indicatif ->
+                        DropdownMenuItem(
+                            text = { Text("${indicatif.drapeau} ${indicatif.dial} (${indicatif.nom})") },
+                            onClick = {
+                                indicatifChoisi = indicatif
+                                menuOuvert = false
+                                notifierChangement(nouvelIndicatif = indicatif)
+                            },
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.width(8.dp))
+            GrcTextField(
+                value = numero,
+                onValueChange = {
+                    numero = it
+                    notifierChangement(nouveauNumero = it)
+                },
+                label = "Numéro",
+                keyboardType = KeyboardType.Phone,
+                enabled = enabled,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        return
+    }
+
     val keyboardType = when (champ.type) {
         "email" -> KeyboardType.Email
         "number" -> KeyboardType.Number
-        "phone" -> KeyboardType.Phone
         else -> KeyboardType.Text
     }
 
