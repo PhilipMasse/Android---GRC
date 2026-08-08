@@ -5,26 +5,25 @@ Mairie de Berre-les-Alpes. Consomme l'API REST du plugin WordPress
 [WordPress---GRC](https://github.com/PhilipMasse/WordPress---GRC)
 (`/wp-json/grc/v1/`).
 
-## État actuel — v0.2.1
+## État actuel — v0.3.0
 
-Module des démarches administratives complet (v0.2.0), avec sélecteur de
-date et envoi de documents multiples ajoutés en v0.2.1.
+Module des Signalements ajouté, en plus de l'authentification (v0.1.0) et
+des démarches administratives (v0.2.x).
 
 - ✅ Connexion (avec gestion de la double authentification, email ou TOTP)
 - ✅ Inscription (captcha interne uniquement — voir limitations ci-dessous)
 - ✅ Mot de passe oublié / réinitialisation
 - ✅ Rafraîchissement automatique du jeton de session
 - ✅ Stockage chiffré des jetons (Android Keystore)
-- ✅ **Démarches administratives** : liste "Mes démarches", choix du type,
-  formulaire dynamique (texte, liste déroulante, email, nombre, **date via
-  sélecteur natif, affichée en JJ/MM/AAAA**, téléphone), détail d'un dossier
-  avec fil de messages (lecture + envoi)
-- ✅ **Envoi de documents multiples** : à la création d'une démarche (section
-  "Documents à joindre", plusieurs fichiers en une fois) et dans les réponses
-  du fil de messages — même principe que le site web (création du dossier,
-  puis envoi séparé des fichiers)
-- ⏳ Signalements, rendez-vous : **pas encore implémentés**, prévus dans une
-  prochaine version
+- ✅ **Démarches administratives** : liste, choix du type, formulaire
+  dynamique (texte, liste déroulante, email, nombre, date via sélecteur
+  natif, téléphone avec indicatif pays), détail avec fil de messages, envoi
+  de documents multiples (PDF/DOCX/JPG/PNG)
+- ✅ **Signalements** : liste "Mes signalements", création avec
+  géolocalisation automatique, carte interactive (Leaflet/OpenStreetMap dans
+  une WebView, sans clé API), sélection de catégorie, détection de doublons
+  à proximité, envoi de plusieurs photos, détail du dossier
+- ⏳ Rendez-vous : **pas encore implémenté**, prévu dans une prochaine version
 
 ## ⚠️ Important : ce projet n'a pas été compilé
 
@@ -108,7 +107,12 @@ projet grossit significativement dans les prochains lots.
   application avant envoi (le serveur applique sa propre limite de 8 Mo par
   fichier et refuse proprement les fichiers trop volumineux, mais l'appli ne
   prévient pas l'utilisateur avant l'envoi).
-- **Signalements et rendez-vous** : pas encore implémentés.
+- **Signalements** : le détail d'un signalement est reconstruit à partir de
+  la liste complète (GET /mes-demandes), la route de détail individuelle
+  n'étant accessible qu'aux agents (session WordPress classique). Sans
+  conséquence pratique : la liste renvoie déjà toutes les informations
+  utiles par signalement.
+- **Rendez-vous** : pas encore implémenté.
 
 ## Correspondance avec l'API
 

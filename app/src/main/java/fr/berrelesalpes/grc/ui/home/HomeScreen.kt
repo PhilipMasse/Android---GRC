@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import fr.berrelesalpes.grc.ui.common.ErrorBanner
 
@@ -40,6 +42,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onLoggedOut: () -> Unit,
     onOpenDemarches: () -> Unit,
+    onOpenDemandes: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -97,6 +100,13 @@ fun HomeScreen(
                     Spacer(Modifier.height(28.dp))
 
                     ModuleCard(
+                        icon = Icons.Filled.LocationOn,
+                        title = "Mes signalements",
+                        subtitle = "Signaler un problème sur la voie publique (voirie, éclairage, propreté...)",
+                        onClick = onOpenDemandes,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    ModuleCard(
                         icon = Icons.Filled.Description,
                         title = "Mes démarches",
                         subtitle = "Consulter ou créer un dossier de démarche administrative",
@@ -104,7 +114,7 @@ fun HomeScreen(
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        text = "Les modules Signalements et Rendez-vous seront ajoutés dans une prochaine version.",
+                        text = "Le module Rendez-vous sera ajouté dans une prochaine version.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                     )
@@ -121,7 +131,7 @@ fun HomeScreen(
 
 @Composable
 private fun ModuleCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     subtitle: String,
     onClick: () -> Unit,

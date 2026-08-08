@@ -2,7 +2,10 @@ package fr.berrelesalpes.grc.data.network
 
 import fr.berrelesalpes.grc.data.model.AddMessageResponse
 import fr.berrelesalpes.grc.data.model.CaptchaChallenge
+import fr.berrelesalpes.grc.data.model.Categorie
 import fr.berrelesalpes.grc.data.model.Citoyen
+import fr.berrelesalpes.grc.data.model.DemandeProche
+import fr.berrelesalpes.grc.data.model.DemandeSignalement
 import fr.berrelesalpes.grc.data.model.DemarcheDetail
 import fr.berrelesalpes.grc.data.model.DemarcheResume
 import fr.berrelesalpes.grc.data.model.DemarcheType
@@ -14,6 +17,9 @@ import fr.berrelesalpes.grc.data.model.RefreshRequest
 import fr.berrelesalpes.grc.data.model.RefreshResponse
 import fr.berrelesalpes.grc.data.model.RegisterRequest
 import fr.berrelesalpes.grc.data.model.ResetPasswordRequest
+import fr.berrelesalpes.grc.data.model.ReverseGeocodeResponse
+import fr.berrelesalpes.grc.data.model.SubmitDemandeRequest
+import fr.berrelesalpes.grc.data.model.SubmitDemandeResponse
 import fr.berrelesalpes.grc.data.model.SubmitDemarcheRequest
 import fr.berrelesalpes.grc.data.model.SubmitDemarcheResponse
 import fr.berrelesalpes.grc.data.model.TokenResponse
@@ -30,6 +36,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Décrit les routes de /wp-json/grc/v1/ consommées par l'application.
@@ -101,6 +108,30 @@ interface GrcApiService {
     @Multipart
     @POST("demarches/{id}/pieces-jointes")
     suspend fun uploadDemarchePieces(
+        @Path("id") id: Int,
+        @Part files: List<MultipartBody.Part>,
+    ): Response<List<PieceJointeUploadResult>>
+
+    // --- Signalements -------------------------------------------------
+
+    @GET("categories")
+    suspend fun getCategories(): Response<List<Categorie>>
+
+    @POST("demandes/public-submit")
+    suspend fun submitDemande(@Body body: SubmitDemandeRequest): Response<SubmitDemandeResponse>
+
+    @GET("mes-demandes")
+    suspend fun getMyDemandes(): Response<List<DemandeSignalement>>
+
+    @GET("demandes/proches")
+    suspend fun getDemandesProches(@Query("lat") lat: Double, @Query("lng") lng: Double): Response<List<DemandeProche>>
+
+    @GET("geocode/reverse")
+    suspend fun reverseGeocode(@Query("lat") lat: Double, @Query("lng") lng: Double): Response<ReverseGeocodeResponse>
+
+    @Multipart
+    @POST("demandes/{id}/pieces-jointes")
+    suspend fun uploadDemandePieces(
         @Path("id") id: Int,
         @Part files: List<MultipartBody.Part>,
     ): Response<List<PieceJointeUploadResult>>

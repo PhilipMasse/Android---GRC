@@ -30,6 +30,12 @@ import fr.berrelesalpes.grc.ui.demarches.DemarcheListScreen
 import fr.berrelesalpes.grc.ui.demarches.DemarcheListViewModel
 import fr.berrelesalpes.grc.ui.demarches.DemarcheTypeSelectScreen
 import fr.berrelesalpes.grc.ui.demarches.DemarcheTypeSelectViewModel
+import fr.berrelesalpes.grc.ui.demandes.DemandeDetailScreen
+import fr.berrelesalpes.grc.ui.demandes.DemandeDetailViewModel
+import fr.berrelesalpes.grc.ui.demandes.DemandeFormScreen
+import fr.berrelesalpes.grc.ui.demandes.DemandeFormViewModel
+import fr.berrelesalpes.grc.ui.demandes.DemandeListScreen
+import fr.berrelesalpes.grc.ui.demandes.DemandeListViewModel
 import fr.berrelesalpes.grc.ui.home.HomeScreen
 import fr.berrelesalpes.grc.ui.home.HomeViewModel
 import java.net.URLDecoder
@@ -49,17 +55,23 @@ object GrcDestinations {
     const val DEMARCHE_FORM = "demarche_form/{typeSlug}"
     const val DEMARCHE_DETAIL = "demarche_detail/{id}"
 
+    const val DEMANDE_LIST = "demande_list"
+    const val DEMANDE_FORM = "demande_form"
+    const val DEMANDE_DETAIL = "demande_detail/{id}"
+
     fun resetPassword(token: String) = "reset_password/${URLEncoder.encode(token, "UTF-8")}"
     fun twoFactor(pendingToken: String, method: String) =
         "two_factor/${URLEncoder.encode(pendingToken, "UTF-8")}/${URLEncoder.encode(method, "UTF-8")}"
     fun demarcheForm(typeSlug: String) = "demarche_form/${URLEncoder.encode(typeSlug, "UTF-8")}"
     fun demarcheDetail(id: Int) = "demarche_detail/$id"
+    fun demandeDetail(id: Int) = "demande_detail/$id"
 }
 
 @Composable
 fun GrcNavGraph(application: GrcApplication, navController: NavHostController = rememberNavController()) {
     val repository = application.authRepository
     val demarcheRepository = application.demarcheRepository
+    val demandeRepository = application.demandeRepository
     val tokenManager: TokenManager = application.tokenManager
 
     val startDestination = if (tokenManager.isLoggedIn.value) GrcDestinations.HOME else GrcDestinations.LOGIN
@@ -150,6 +162,42 @@ fun GrcNavGraph(application: GrcApplication, navController: NavHostController = 
                     }
                 },
                 onOpenDemarches = { navController.navigate(GrcDestinations.DEMARCHE_LIST) },
+                onOpenDemandes = { navController.navigate(GrcDestinations.DEMANDE_LIST) },
+            )
+        }
+
+        composable(GrcDestinations.DEMANDE_LIST) {
+            val vm: DemandeListViewModel = viewModel(factory = SimpleViewModelFactory { DemandeListViewModel(demandeRepository) })
+            DemandeListScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onOpenDemande = { id -> navController.navigate(GrcDestinations.demandeDetail(id)) },
+                onNewDemande = { navController.navigate(GrcDestinations.DEMANDE_FORM) },
+            )
+        }
+
+        composable(GrcDestinations.DEMANDE_FORM) {
+            val vm: DemandeFormViewModel = viewModel(factory = SimpleViewModelFactory { DemandeFormViewModel(demandeRepository) })
+            DemandeFormScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onSubmitted = {
+                    navController.navigate(GrcDestinations.DEMANDE_LIST) {
+                        popUpTo(GrcDestinations.DEMANDE_LIST) { inclusive = true }
+                    }
+                },
+            )
+        }
+
+        composable(
+            route = GrcDestinations.DEMANDE_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("id") ?: 0
+            val vm: DemandeDetailViewModel = viewModel(factory = SimpleViewModelFactory { DemandeDetailViewModel(demandeRepository, id) })
+            DemandeDetailScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
             )
         }
 

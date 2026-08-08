@@ -5,6 +5,7 @@ import fr.berrelesalpes.grc.data.local.TokenManager
 import fr.berrelesalpes.grc.data.network.GrcApiService
 import fr.berrelesalpes.grc.data.network.RetrofitClient
 import fr.berrelesalpes.grc.data.repository.AuthRepository
+import fr.berrelesalpes.grc.data.repository.DemandeRepository
 import fr.berrelesalpes.grc.data.repository.DemarcheRepository
 
 /**
@@ -22,6 +23,8 @@ class GrcApplication : Application() {
         private set
     lateinit var demarcheRepository: DemarcheRepository
         private set
+    lateinit var demandeRepository: DemandeRepository
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -29,5 +32,6 @@ class GrcApplication : Application() {
         apiService = RetrofitClient.create(tokenManager)
         authRepository = AuthRepository(apiService, tokenManager)
         demarcheRepository = DemarcheRepository(apiService)
+        demandeRepository = DemandeRepository(apiService)
     }
 }
