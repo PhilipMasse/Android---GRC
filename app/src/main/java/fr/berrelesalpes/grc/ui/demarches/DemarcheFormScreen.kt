@@ -68,9 +68,16 @@ fun DemarcheFormScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
+    // Restreint aux formats acceptés par le serveur pour les démarches
+    // (PDF et Word .docx uniquement — voir GRC_File_Scanner::ALLOWED_DOCUMENT_MIME
+    // côté plugin WordPress), à l'identique du sélecteur du site web.
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetMultipleContents()
+        contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris -> viewModel.onFichiersSelectionnes(uris) }
+    val typesDocumentsAutorises = arrayOf(
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
 
     Scaffold(
         topBar = {
@@ -140,7 +147,7 @@ fun DemarcheFormScreen(
                     Text(text = "Documents à joindre", style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.height(6.dp))
                     OutlinedButton(
-                        onClick = { filePickerLauncher.launch("*/*") },
+                        onClick = { filePickerLauncher.launch(typesDocumentsAutorises) },
                         enabled = !state.isSubmitting,
                     ) {
                         Icon(Icons.Filled.AttachFile, contentDescription = null)
@@ -209,7 +216,7 @@ private fun DemarcheChampField(
                 style = MaterialTheme.typography.labelLarge,
             )
             Text(
-                text = "Joignez ce document depuis la section \"Documents à joindre\" ci-dessous.",
+                text = "Joignez ce document (PDF ou Word) depuis la section \"Documents à joindre\" ci-dessous.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
             )

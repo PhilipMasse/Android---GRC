@@ -125,7 +125,7 @@ class DemarcheFormViewModel(
                             val echecs = uploadResult.data.filter { it.error }
                             if (echecs.isEmpty()) null
                             else "Dossier envoyé, mais ${echecs.size} document(s) n'ont pas pu être joints : " +
-                                echecs.joinToString(", ") { it.nomOriginal ?: "fichier" }
+                                echecs.joinToString("; ") { "${it.nomOriginal ?: \"fichier\"} (${it.message ?: \"raison inconnue\"})" }
                         }
                         is ApiResult.Error -> "Dossier envoyé, mais les documents n'ont pas pu être joints (${uploadResult.message})"
                     }

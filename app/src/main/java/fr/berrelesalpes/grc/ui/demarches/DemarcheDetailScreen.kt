@@ -54,8 +54,12 @@ fun DemarcheDetailScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetMultipleContents()
+        contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris -> viewModel.onFichiersSelectionnes(uris) }
+    val typesDocumentsAutorises = arrayOf(
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
 
     Scaffold(
         topBar = {
@@ -153,7 +157,7 @@ fun DemarcheDetailScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         IconButton(
-                            onClick = { filePickerLauncher.launch("*/*") },
+                            onClick = { filePickerLauncher.launch(typesDocumentsAutorises) },
                             enabled = !state.isSendingMessage,
                         ) {
                             Icon(Icons.Filled.AttachFile, contentDescription = "Joindre un document", tint = MaterialTheme.colorScheme.primary)
