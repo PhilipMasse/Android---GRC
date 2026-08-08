@@ -39,6 +39,7 @@ fun LeafletMapView(
     AndroidView(
         modifier = modifier.fillMaxWidth().height(260.dp),
         factory = { context ->
+            Log.e("LeafletMapView", "Création de la WebView (factory appelée)")
             WebView(context).apply {
                 // Corrige un problème connu et fréquent : une WebView intégrée
                 // dans une interface Compose (via AndroidView) reste parfois
@@ -62,10 +63,18 @@ fun LeafletMapView(
                         super.onReceivedError(view, request, error)
                         Log.e("LeafletMapView", "Erreur de chargement : ${error?.description} (${request?.url})")
                     }
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        Log.e("LeafletMapView", "Page chargée avec succès : $url")
+                    }
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                        super.onPageStarted(view, url, favicon)
+                        Log.e("LeafletMapView", "Chargement démarré : $url")
+                    }
                 }
                 webChromeClient = object : WebChromeClient() {
                     override fun onConsoleMessage(message: ConsoleMessage?): Boolean {
-                        Log.d("LeafletMapView", "Console JS : ${message?.message()} (ligne ${message?.lineNumber()} — ${message?.sourceId()})")
+                        Log.e("LeafletMapView", "Console JS : ${message?.message()} (ligne ${message?.lineNumber()} — ${message?.sourceId()})")
                         return true
                     }
                 }
@@ -80,6 +89,7 @@ fun LeafletMapView(
                     "AndroidBridge"
                 )
                 loadUrl("file:///android_asset/map.html")
+                Log.e("LeafletMapView", "loadUrl() appelé")
             }
         },
         update = { view ->
