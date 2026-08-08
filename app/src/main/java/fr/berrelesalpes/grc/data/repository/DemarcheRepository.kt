@@ -5,6 +5,7 @@ import fr.berrelesalpes.grc.data.model.AddMessageResponse
 import fr.berrelesalpes.grc.data.model.DemarcheDetail
 import fr.berrelesalpes.grc.data.model.DemarcheResume
 import fr.berrelesalpes.grc.data.model.DemarcheType
+import fr.berrelesalpes.grc.data.model.PieceJointeUploadResult
 import fr.berrelesalpes.grc.data.model.SubmitDemarcheRequest
 import fr.berrelesalpes.grc.data.model.SubmitDemarcheResponse
 import fr.berrelesalpes.grc.data.network.ApiResult
@@ -13,7 +14,9 @@ import fr.berrelesalpes.grc.data.network.networkErrorResult
 import fr.berrelesalpes.grc.data.network.toApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 /**
  * Point d'entrée unique pour toutes les opérations liées aux démarches
