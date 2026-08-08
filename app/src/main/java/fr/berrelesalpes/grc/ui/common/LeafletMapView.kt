@@ -1,8 +1,14 @@
 package fr.berrelesalpes.grc.ui.common
 
 import android.annotation.SuppressLint
+import android.util.Log
+import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -35,6 +41,26 @@ fun LeafletMapView(
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                // Autorise le chargement de ressources distantes (CDN Leaflet,
+                // tuiles OpenStreetMap) depuis une page locale (file://), et
+                // désactive le cache pour toujours charger la dernière version
+                // pendant la mise au point.
+                settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                settings.cacheMode = android.webkit.WebSettings.LOAD_NO_CACHE
+
+                webViewClient = object : WebViewClient() {
+                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                        super.onReceivedError(view, request, error)
+                        Log.e("LeafletMapView", "Erreur de chargement : ${error?.description} (${request?.url})")
+                    }
+                }
+                webChromeClient = object : WebChromeClient() {
+                    override fun onConsoleMessage(message: ConsoleMessage?): Boolean {
+                        Log.d("LeafletMapView", "Console JS : ${message?.message()} (ligne ${message?.lineNumber()} — ${message?.sourceId()})")
+                        return true
+                    }
+                }
+
                 addJavascriptInterface(
                     object {
                         @JavascriptInterface
