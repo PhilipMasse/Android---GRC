@@ -20,9 +20,9 @@ des démarches administratives (v0.2.x).
   natif, téléphone avec indicatif pays), détail avec fil de messages, envoi
   de documents multiples (PDF/DOCX/JPG/PNG)
 - ✅ **Signalements** : liste "Mes signalements", création avec
-  géolocalisation automatique, carte interactive (Leaflet/OpenStreetMap dans
-  une WebView, sans clé API), sélection de catégorie, détection de doublons
-  à proximité, envoi de plusieurs photos, détail du dossier
+  géolocalisation automatique, carte interactive (Google Maps, marqueur
+  déplaçable), sélection de catégorie, détection de doublons à proximité,
+  envoi de plusieurs photos, détail du dossier
 - ⏳ Rendez-vous : **pas encore implémenté**, prévu dans une prochaine version
 
 ## ⚠️ Important : ce projet n'a pas été compilé
@@ -54,6 +54,18 @@ manquant, etc. — voir ci-dessous).
    ce que cet environnement de développement ne pouvait pas faire.)
 3. **Synchroniser le projet** (Android Studio le proposera automatiquement).
 4. **Lancer** sur un émulateur ou un appareil connecté.
+
+## Configuration de la clé Google Maps
+
+Requiert une clé API Google Maps (Maps SDK for Android activé sur Google
+Cloud Console), placée dans `local.properties` — **jamais committée** :
+
+```properties
+MAPS_API_KEY=votre_clé_ici
+```
+
+Sans cette clé, l'écran "Nouveau signalement" se lance normalement mais la
+carte n'affiche rien (zone grise vide).
 
 ## Configuration de l'URL de l'API
 

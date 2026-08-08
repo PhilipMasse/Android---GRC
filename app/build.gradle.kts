@@ -4,6 +4,16 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// Lit la clé API Google Maps depuis local.properties (fichier local, jamais
+// versionné sur Git — chaque développeur/environnement y place la sienne).
+val localProperties = java.util.Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
+
 android {
     namespace = "fr.berrelesalpes.grc"
     compileSdk = 34
@@ -12,14 +22,18 @@ android {
         applicationId = "fr.berrelesalpes.grc"
         minSdk = 26 // Android 8.0 — couvre la quasi-totalité du parc actif.
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.3.0"
+        versionCode = 7
+        versionName = "0.3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // URL de base de l'API GRC. Modifiable par variante de build
         // (voir buildTypes ci-dessous) sans toucher au code.
         buildConfigField("String", "API_BASE_URL", "\"https://test3.berrelesalpes.fr/wp-json/grc/v1/\"")
+
+        // Injectée dans AndroidManifest.xml (voir ${MAPS_API_KEY} dans le
+        // manifeste) — jamais codée en dur, lue depuis local.properties.
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {
@@ -98,6 +112,10 @@ dependencies {
     // --- Stockage sécurisé du jeton d'authentification ---------------------
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // --- Google Maps ---------------------------------------------------
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.maps.android:maps-compose:4.4.1")
 
     // --- Tests ---------------------------------------------------------
     testImplementation("junit:junit:4.13.2")

@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.dp
 import fr.berrelesalpes.grc.ui.common.ErrorBanner
 import fr.berrelesalpes.grc.ui.common.GrcPrimaryButton
 import fr.berrelesalpes.grc.ui.common.GrcTextField
-import fr.berrelesalpes.grc.ui.common.LeafletMapView
+import fr.berrelesalpes.grc.ui.common.GoogleMapView
 import fr.berrelesalpes.grc.ui.common.SuccessBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -186,7 +186,7 @@ fun DemandeFormScreen(
             }
 
             item {
-                LeafletMapView(
+                GoogleMapView(
                     latitude = state.latitude,
                     longitude = state.longitude,
                     onPositionSelected = { lat, lng -> viewModel.onPositionChoisie(context, lat, lng) },
